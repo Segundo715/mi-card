@@ -4,8 +4,9 @@
 
 async function browserToWebp(file: File): Promise<File> {
   // SVG se rasteriza igual que los demás formatos: Supabase Storage fuerza
-  // "Content-Disposition: attachment" en SVGs subidos tal cual, lo que hace
-  // que el navegador los descargue en vez de mostrarlos en un <img>.
+  // "Content-Disposition: attachment" en SVGs subidos tal cual (política
+  // anti-XSS a nivel de gateway, no configurable desde el cliente), lo que
+  // hace que el navegador los descargue en vez de mostrarlos en un <img>.
   if (file.type === 'image/webp') return file
   return new Promise((resolve) => {
     const img = new Image()

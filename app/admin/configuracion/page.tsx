@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAdminBrand } from '../AdminBrandContext'
 import { uploadWebp } from '@/lib/uploadWebp'
-import { BrandLogo, isSvgUrl } from '@/app/components/BrandLogo'
+import { BrandLogo } from '@/app/components/BrandLogo'
 
 export default function AdminConfiguracionPage() {
   const { S, reload } = useAdminBrand()
@@ -129,13 +129,11 @@ export default function AdminConfiguracionPage() {
           </div>
           <p className="text-xs mt-1" style={{ color: S.sub }}>Aparece en /admin, en la tarjeta de lealtad y en el resto del sitio</p>
 
-          {isSvgUrl(values.menu_logo || values.profile_logo || '') && (
-            <div className="mt-3">
-              <label className="block text-xs font-bold uppercase tracking-wide mb-1" style={{ color: S.sub }}>Color del logo (SVG)</label>
-              {renderColorRow('menu_logo_color', '#B90F45')}
-              <p className="text-xs mt-1" style={{ color: S.sub }}>Solo aplica a logos en formato SVG — recolorea el logo completo con un solo tono.</p>
-            </div>
-          )}
+          <div className="mt-3">
+            <label className="block text-xs font-bold uppercase tracking-wide mb-1" style={{ color: S.sub }}>Recolorear logo (si tiene negro u otro color)</label>
+            {renderColorRow('menu_logo_color', '#B90F45')}
+            <p className="text-xs mt-1" style={{ color: S.sub }}>Reemplaza todo el logo por un solo tono, usando su forma como silueta. Funciona con logos de fondo transparente (PNG/WebP/SVG); no aplica a fotos o JPG.</p>
+          </div>
         </div>
 
         {/* Fondo */}
