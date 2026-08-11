@@ -41,6 +41,15 @@ function timeAgo(days: number) {
   return `hace ${Math.floor(days / 30)} meses`
 }
 
+// "Vence este mes" = aún no vencida pero su fecha de vencimiento cae en el
+// mes calendario actual — para avisarle al cliente antes de que se le venza.
+function expiresThisMonth(card: LoyaltyCard): boolean {
+  if (!card.expiresAt) return false
+  const exp = new Date(card.expiresAt)
+  const now = new Date()
+  return exp.getFullYear() === now.getFullYear() && exp.getMonth() === now.getMonth() && exp.getTime() >= now.getTime()
+}
+
 const CATEGORIES_KEY = 'reward_categories'
 
 function contrastText(hex: string): string {
@@ -88,7 +97,8 @@ export default function AdminTarjetasPage() {
   const { S, accentText, accentHex, loaded } = useAdminBrand()
   const [cards, setCards] = useState<LoyaltyCard[]>([])
   const [loadingCards, setLoadingCards] = useState(true)
-  const [filter, setFilter] = useState<'todas' | 'activas' | 'inactivas' | 'vencidas'>('todas')
+  const [filter, setFilter] = useState<'todas' | 'activas' | 'inactivas' | 'vencidas' | 'vencen_mes'>('todas')
+  const [categoryFilter, setCategoryFilter] = useState<string>('todas')
   const [inactiveDays, setInactiveDays] = useState(30)
   const [categories, setCategories] = useState<RewardCategory[]>(getDefaultCategories(accentHex))
   const [draft, setDraft] = useState<RewardCategory>({ ...getDefaultCategories(accentHex)[0] })
@@ -247,19 +257,27 @@ export default function AdminTarjetasPage() {
     load()
   }
 
-  const filtered = cards.filter(c => {
+  // Filtrar primero por categoría (café / 2x1 baguettes / 2x1 pastel / ...) para
+  // saber qué clientes tienen cada tarjeta específica, luego por estado.
+  const categoryScoped = categoryFilter === 'todas'
+    ? cards
+    : cards.filter(c => (c.cardType ?? 'cafe') === categoryFilter)
+
+  const filtered = categoryScoped.filter(c => {
     const days = daysLeft(c.expiresAt)
     if (filter === 'activas') return c.active
     if (filter === 'inactivas') return !c.active
     if (filter === 'vencidas') return days !== null && days <= 0
+    if (filter === 'vencen_mes') return expiresThisMonth(c)
     return true
   })
 
   const stats = {
-    total: cards.length,
-    activas: cards.filter(c => c.active).length,
-    inactivas: cards.filter(c => !c.active).length,
-    vencidas: cards.filter(c => { const d = daysLeft(c.expiresAt); return d !== null && d <= 0 }).length,
+    total: categoryScoped.length,
+    activas: categoryScoped.filter(c => c.active).length,
+    inactivas: categoryScoped.filter(c => !c.active).length,
+    vencidas: categoryScoped.filter(c => { const d = daysLeft(c.expiresAt); return d !== null && d <= 0 }).length,
+    vencenMes: categoryScoped.filter(expiresThisMonth).length,
   }
 
   return (
@@ -312,12 +330,13 @@ export default function AdminTarjetasPage() {
       })()}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
           { label: 'Total', value: stats.total, color: S.accent },
           { label: 'Activas', value: stats.activas, color: '#4ade80' },
           { label: 'Inactivas', value: stats.inactivas, color: '#f87171' },
           { label: 'Vencidas', value: stats.vencidas, color: '#fb923c' },
+          { label: 'Vencen este mes', value: stats.vencenMes, color: '#facc15' },
         ].map(s => (
           <div key={s.label} className="rounded-2xl p-4 text-center" style={{ backgroundColor: S.card, border: `1px solid ${S.border}` }}>
             <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
@@ -648,15 +667,44 @@ export default function AdminTarjetasPage() {
         </button>
       </div>
 
-      {/* Filtros */}
-      <div className="flex gap-2 flex-wrap">
-        {(['todas', 'activas', 'inactivas', 'vencidas'] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className="px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all"
-            style={filter === f
+      {/* Filtro por categoría — para ver qué clientes tienen cada tarjeta específica */}
+      <div className="space-y-1.5">
+        <p className="text-xs font-bold" style={{ color: S.sub }}>Filtrar por categoría</p>
+        <div className="flex gap-2 flex-wrap">
+          <button onClick={() => setCategoryFilter('todas')}
+            className="px-4 py-2 rounded-xl text-xs font-bold transition-all"
+            style={categoryFilter === 'todas'
               ? { backgroundColor: S.accent, color: accentText }
               : { backgroundColor: S.card, color: S.sub, border: `1px solid ${S.border}` }}>
-            {f}
+            Todas las categorías
+          </button>
+          {categories.map(c => (
+            <button key={c.id} onClick={() => setCategoryFilter(c.id)}
+              className="px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
+              style={categoryFilter === c.id
+                ? { backgroundColor: c.color, color: contrastText(c.color) }
+                : { backgroundColor: S.card, color: S.sub, border: `1px solid ${S.border}` }}>
+              <RewardIcon name={c.icon} size={13} /> {c.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Filtros por estado */}
+      <div className="flex gap-2 flex-wrap">
+        {([
+          { id: 'todas', label: 'Todas' },
+          { id: 'activas', label: 'Activas' },
+          { id: 'inactivas', label: 'Inactivas' },
+          { id: 'vencidas', label: 'Vencidas' },
+          { id: 'vencen_mes', label: 'Vencen este mes' },
+        ] as const).map(f => (
+          <button key={f.id} onClick={() => setFilter(f.id)}
+            className="px-4 py-2 rounded-xl text-xs font-bold transition-all"
+            style={filter === f.id
+              ? { backgroundColor: S.accent, color: accentText }
+              : { backgroundColor: S.card, color: S.sub, border: `1px solid ${S.border}` }}>
+            {f.label}
           </button>
         ))}
       </div>
@@ -674,6 +722,7 @@ export default function AdminTarjetasPage() {
             const days = daysLeft(card.expiresAt)
             const sinVisita = lastVisit(card)
             const expired = days !== null && days <= 0
+            const cat = categories.find(c => c.id === (card.cardType ?? 'cafe'))
             return (
               <div key={card.id} className="rounded-2xl p-4 flex flex-wrap items-center gap-3"
                 style={{ backgroundColor: S.card, border: `1px solid ${expired ? 'rgba(251,146,60,.3)' : !card.active ? 'rgba(239,68,68,.2)' : S.border}` }}>
@@ -688,15 +737,12 @@ export default function AdminTarjetasPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-bold text-sm" style={{ color: S.text }}>{card.name}</p>
-                    {(() => {
-                      const cat = categories.find(c => c.id === (card.cardType ?? 'cafe'))
-                      return cat ? (
-                        <span className="text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"
-                          style={{ backgroundColor: `${cat.color}22`, color: cat.color }}>
-                          <RewardIcon name={cat.icon} size={11} /> {cat.name}
-                        </span>
-                      ) : null
-                    })()}
+                    {cat && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"
+                        style={{ backgroundColor: `${cat.color}22`, color: cat.color }}>
+                        <RewardIcon name={cat.icon} size={11} /> {cat.name}
+                      </span>
+                    )}
                     <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
                       style={card.active
                         ? { backgroundColor: 'rgba(0,230,118,.12)', color: '#4ade80' }
@@ -710,7 +756,7 @@ export default function AdminTarjetasPage() {
                   </div>
                   <div className="flex gap-3 mt-0.5 flex-wrap">
                     <p className="text-xs flex items-center gap-1" style={{ color: S.sub }}><Icon name="phone" size={12} /> {card.phone}</p>
-                    <p className="text-xs" style={{ color: S.sub }}>Sellos: {card.visits}/5</p>
+                    <p className="text-xs" style={{ color: S.sub }}>Sellos: {card.visits}/{cat?.goal ?? 5}</p>
                     <p className="text-xs" style={{ color: sinVisita > 30 ? '#fb923c' : S.sub }}>
                       Última visita: {timeAgo(sinVisita)}
                     </p>
