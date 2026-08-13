@@ -1,20 +1,39 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { AdminBrandProvider, useAdminBrand } from './AdminBrandContext'
 import { Icon } from '@/app/components/Icon'
 import { BrandLogo } from '@/app/components/BrandLogo'
+import type { FeatureFlags } from '@/lib/features'
 
 const TABS = [
-  { href: '/admin', label: 'Sellar', icon: 'coffee' as const },
-  { href: '/admin/tarjetas', label: 'Tarjetas', icon: 'card' as const },
-  { href: '/admin/configuracion', label: 'Configuración', icon: 'settings' as const },
+  { href: '/admin', label: 'Sellar', icon: 'coffee' as const, feature: 'sellar' as const },
+  { href: '/admin/tarjetas', label: 'Tarjetas', icon: 'card' as const, feature: 'tarjetas' as const },
+  { href: '/admin/configuracion', label: 'Configuración', icon: 'settings' as const, feature: 'configuracion' as const },
 ]
 
 function AdminChrome({ children }: { children: React.ReactNode }) {
   const { logo, logoColor, logoBg, brandName, adminName, S, accentText } = useAdminBrand()
   const pathname = usePathname()
   const router = useRouter()
+  const [flags, setFlags] = useState<FeatureFlags | null>(null)
+
+  useEffect(() => {
+    fetch('/api/features').then(r => r.json()).then(setFlags).catch(() => {})
+  }, [])
+
+  // Si el módulo actual fue deshabilitado por el SuperAdmin, redirige al primero disponible.
+  useEffect(() => {
+    if (!flags) return
+    const current = TABS.find(t => t.href === pathname)
+    if (current && flags[current.feature] === false) {
+      const next = TABS.find(t => flags[t.feature] !== false)
+      router.replace(next?.href ?? '/admin/login')
+    }
+  }, [flags, pathname, router])
+
+  const visibleTabs = TABS.filter(t => flags?.[t.feature] !== false)
 
   async function logout() {
     await fetch('/api/auth', { method: 'DELETE' })
@@ -48,7 +67,7 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 px-3 space-y-1">
-          {TABS.map(navItem)}
+          {visibleTabs.map(navItem)}
         </nav>
 
         <div className="p-3" style={{ borderTop: `1px solid ${S.border}` }}>
@@ -89,7 +108,7 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
           </button>
         </div>
         <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
-          {TABS.map(t => {
+          {visibleTabs.map(t => {
             const active = pathname === t.href
             return (
               <button key={t.href} onClick={() => router.push(t.href)}
