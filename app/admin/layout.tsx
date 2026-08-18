@@ -56,6 +56,17 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: S.bg }}>
+      {/* ===== Logo agencia + toggle de tema (fijo, escritorio) — al otro lado de la pantalla, no en el sidebar ===== */}
+      <div className="hidden md:flex fixed top-5 right-6 z-[100] items-center gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/branding/singularix-logo.svg" alt="Singularix Agencia" className="h-4 w-auto object-contain pointer-events-none" />
+        <button onClick={toggleDarkMode} aria-label="Cambiar tema"
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors"
+          style={{ backgroundColor: S.card, border: `1px solid ${S.border}`, color: S.text }}>
+          <Icon name={darkMode ? 'sun' : 'moon'} size={16} />
+        </button>
+      </div>
+
       {/* ===== Sidebar desktop ===== */}
       <aside className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-40 w-[240px]"
         style={{ backgroundColor: S.sidebar, borderRight: `1px solid ${S.border}` }}>
@@ -65,15 +76,6 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
               {logo && <BrandLogo src={logo} color={logoColor} alt={brandName} className="w-full h-full object-contain" />}
             </div>
             <div className="font-extrabold text-base flex-1 min-w-0 truncate" style={{ color: S.text }}>{brandName}</div>
-          </div>
-          <div className="flex items-center justify-end gap-2 mt-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/branding/singularix-logo.svg" alt="Singularix Agencia" className="h-3.5 w-auto object-contain" />
-            <button onClick={toggleDarkMode} aria-label="Cambiar tema"
-              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors"
-              style={{ backgroundColor: S.bg, border: `1px solid ${S.border}`, color: S.text }}>
-              <Icon name={darkMode ? 'sun' : 'moon'} size={16} />
-            </button>
           </div>
         </div>
 
