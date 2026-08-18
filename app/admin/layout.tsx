@@ -14,7 +14,7 @@ const TABS = [
 ]
 
 function AdminChrome({ children }: { children: React.ReactNode }) {
-  const { logo, logoColor, logoBg, brandName, adminName, S, accentText } = useAdminBrand()
+  const { logo, logoColor, logoBg, brandName, adminName, S, accentText, darkMode, toggleDarkMode } = useAdminBrand()
   const pathname = usePathname()
   const router = useRouter()
   const [flags, setFlags] = useState<FeatureFlags | null>(null)
@@ -63,7 +63,12 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
           <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0" style={{ backgroundColor: logoBg }}>
             {logo && <BrandLogo src={logo} color={logoColor} alt={brandName} className="w-full h-full object-contain" />}
           </div>
-          <div className="font-extrabold text-base" style={{ color: S.text }}>{brandName}</div>
+          <div className="font-extrabold text-base flex-1 min-w-0 truncate" style={{ color: S.text }}>{brandName}</div>
+          <button onClick={toggleDarkMode} aria-label="Cambiar tema"
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors"
+            style={{ backgroundColor: S.bg, border: `1px solid ${S.border}`, color: S.text }}>
+            <Icon name={darkMode ? 'sun' : 'moon'} size={16} />
+          </button>
         </div>
 
         <nav className="flex-1 px-3 space-y-1">
@@ -92,6 +97,13 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
             Cerrar sesión
           </button>
         </div>
+
+        {/* Crédito de quién construyó el panel — solo visible aquí, en /admin. */}
+        <div className="flex items-center justify-center py-3" style={{ borderTop: `1px solid ${S.border}` }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/branding/singularix-logo.svg" alt="Singularix Agencia"
+            className="h-3.5 w-auto object-contain" />
+        </div>
       </aside>
 
       {/* ===== Topbar mobile ===== */}
@@ -103,9 +115,16 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
             </div>
             <span className="font-bold text-sm" style={{ color: S.text }}>{brandName}</span>
           </div>
-          <button onClick={logout} className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ color: S.sub, border: `1px solid ${S.border}` }}>
-            Salir
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={toggleDarkMode} aria-label="Cambiar tema"
+              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+              style={{ color: S.text, border: `1px solid ${S.border}` }}>
+              <Icon name={darkMode ? 'sun' : 'moon'} size={14} />
+            </button>
+            <button onClick={logout} className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ color: S.sub, border: `1px solid ${S.border}` }}>
+              Salir
+            </button>
+          </div>
         </div>
         <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
           {visibleTabs.map(t => {

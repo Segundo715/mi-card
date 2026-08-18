@@ -3,6 +3,8 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { DEFAULT_BRAND_NAME, DEFAULT_BRAND_COLOR } from '@/lib/brandDefaults'
 
+const DARK_MODE_KEY = 'admin_dark_mode'
+
 function contrastText(hex: string): string {
   const m = /^#([0-9a-fA-F]{6})$/.exec(hex)
   if (!m) return '#fff'
@@ -21,10 +23,12 @@ interface AdminBrand {
   accentHex: string
   loaded: boolean
   reload: () => void
-  // "Chrome" del panel — igual que el admin de mi-menu: tema claro fijo,
-  // el color de identidad del restaurante solo resalta el estado activo.
+  // El color de identidad del restaurante (accent) se mantiene igual en ambos
+  // temas — solo el resto de la paleta cambia entre claro y oscuro.
   S: { bg: string; sidebar: string; card: string; accent: string; text: string; sub: string; border: string }
   accentText: string
+  darkMode: boolean
+  toggleDarkMode: () => void
 }
 
 const AdminBrandContext = createContext<AdminBrand | null>(null)
@@ -43,6 +47,7 @@ export function AdminBrandProvider({ children }: { children: React.ReactNode }) 
   const [adminName, setAdminName] = useState('Administrador')
   const [accentHex, setAccentHex] = useState(DEFAULT_BRAND_COLOR)
   const [loaded, setLoaded] = useState(false)
+  const [darkMode, setDarkMode] = useState(false)
 
   function load() {
     fetch('/api/settings?key=menu_logo').then(r => r.json()).then(d => {
@@ -60,16 +65,26 @@ export function AdminBrandProvider({ children }: { children: React.ReactNode }) 
     if (match) setAdminName(decodeURIComponent(match.split('=')[1]))
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load()
+    setDarkMode(localStorage.getItem(DARK_MODE_KEY) === '1')
+  }, [])
 
-  const accentText = contrastText(accentHex)
-  const S = {
-    bg: '#f3f5fb', sidebar: '#ffffff', card: '#ffffff', accent: accentHex,
-    text: '#0d1426', sub: '#5b6884', border: 'rgba(13,20,38,0.08)',
+  function toggleDarkMode() {
+    setDarkMode(prev => {
+      const next = !prev
+      localStorage.setItem(DARK_MODE_KEY, next ? '1' : '0')
+      return next
+    })
   }
 
+  const accentText = contrastText(accentHex)
+  const S = darkMode
+    ? { bg: '#0b0d14', sidebar: '#12141c', card: '#161922', accent: accentHex, text: '#f3f5fb', sub: '#8b93a7', border: 'rgba(255,255,255,0.08)' }
+    : { bg: '#f3f5fb', sidebar: '#ffffff', card: '#ffffff', accent: accentHex, text: '#0d1426', sub: '#5b6884', border: 'rgba(13,20,38,0.08)' }
+
   return (
-    <AdminBrandContext.Provider value={{ logo, logoColor, logoBg, brandName, adminName, accentHex, loaded, reload: load, S, accentText }}>
+    <AdminBrandContext.Provider value={{ logo, logoColor, logoBg, brandName, adminName, accentHex, loaded, reload: load, S, accentText, darkMode, toggleDarkMode }}>
       {children}
     </AdminBrandContext.Provider>
   )
