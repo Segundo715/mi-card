@@ -10,6 +10,7 @@ import type { FeatureFlags } from '@/lib/features'
 const TABS = [
   { href: '/admin', label: 'Sellar', icon: 'coffee' as const, feature: 'sellar' as const },
   { href: '/admin/tarjetas', label: 'Tarjetas', icon: 'card' as const, feature: 'tarjetas' as const },
+  { href: '/admin/usuarios', label: 'Usuarios', icon: 'users' as const, feature: 'usuarios' as const },
   { href: '/admin/configuracion', label: 'Configuración', icon: 'settings' as const, feature: 'configuracion' as const },
 ]
 
