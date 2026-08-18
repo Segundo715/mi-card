@@ -46,6 +46,7 @@ export default function CardDescuentoPage() {
   const [submitting, setSubmitting] = useState(false)
   const [cfg, setCfg] = useState<PromoConfig>(DEFAULT_DESC)
   const [flipped, setFlipped] = useState(false)
+  const [brandLoaded, setBrandLoaded] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -58,21 +59,19 @@ export default function CardDescuentoPage() {
     // Cargar parámetros de la categoría "Descuento" desde /admin/tarjetas.
     // El logo y el nombre de marca caen a la "Identidad del restaurante" si la
     // categoría no los sobreescribe explícitamente (el color sí es propio del descuento).
-    Promise.all([
-      fetch(`/api/settings?key=${CATEGORIES_KEY}`).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/settings?key=restaurant_name').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_logo').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=profile_logo').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_logo_color').then(r => r.json()).catch(() => ({})),
-    ]).then(([catRes, nameRes, logoRes, pLogoRes, logoColorRes]) => {
-      const brandName = nameRes?.value || DEFAULT_DESC.brandText
-      const brandLogoUrl = logoRes?.value || pLogoRes?.value || DEFAULT_DESC.logo
-      const brandLogoColor = logoColorRes?.value || ''
+    // Una sola llamada con ?keys= en vez de 4 en paralelo — cada una era un
+    // round-trip real y sumaban la lentitud inicial antes de mostrar la tarjeta.
+    fetch(`/api/settings?keys=${CATEGORIES_KEY},restaurant_name,menu_logo,profile_logo,menu_logo_color`)
+      .then(r => r.json())
+      .then(({ values: v }: { values: Record<string, string> }) => {
+      const brandName = v.restaurant_name || DEFAULT_DESC.brandText
+      const brandLogoUrl = v.menu_logo || v.profile_logo || DEFAULT_DESC.logo
+      const brandLogoColor = v.menu_logo_color || ''
 
       let promo: (PromoConfig & { id: string }) | null = null
-      if (catRes?.value) {
+      if (v[CATEGORIES_KEY]) {
         try {
-          const list = JSON.parse(catRes.value)
+          const list = JSON.parse(v[CATEGORIES_KEY])
           promo = Array.isArray(list) ? list.find((c: PromoConfig & { id: string }) => c.id === CATEGORY_ID) : null
         } catch {}
       }
@@ -89,8 +88,9 @@ export default function CardDescuentoPage() {
         brandText: promo?.brandText || brandName,
         brandLogo: promo?.brandLogo || DEFAULT_DESC.brandLogo,
       })
+      setBrandLoaded(true)
     })
-      .catch(() => {})
+      .catch(() => setBrandLoaded(true))
   }, [])
 
   async function handleSubmit() {
@@ -120,6 +120,16 @@ export default function CardDescuentoPage() {
   }
 
   const pct = percentOf(cfg.reward)
+
+  // Se oculta hasta que carga la marca real de la categoría — mostrar antes el
+  // logo/color genérico por defecto daba la impresión de que el original "regresaba".
+  if (!brandLoaded) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center" style={{ backgroundColor: '#000' }}>
+        <div className="h-8 w-8 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+      </div>
+    )
+  }
 
   if (step === 'form') {
     return (

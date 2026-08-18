@@ -51,6 +51,7 @@ export default function UsuarioPage() {
   const [submitting, setSubmitting] = useState(false)
   const [brand, setBrand] = useState<Brand>(DEFAULT_BRAND)
   const [flipped, setFlipped] = useState(false)
+  const [brandLoaded, setBrandLoaded] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -62,24 +63,20 @@ export default function UsuarioPage() {
     }
     // Branding desde la categoría "Tarjeta de Café", con la "Identidad del
     // restaurante" como valor por defecto si esa categoría no está personalizada.
-    Promise.all([
-      fetch(`/api/settings?key=${CATEGORIES_KEY}`).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/settings?key=restaurant_name').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_logo').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=profile_logo').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_logo_color').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_hover_color').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=sidebar_accent').then(r => r.json()).catch(() => ({})),
-    ]).then(([catRes, nameRes, logoRes, pLogoRes, logoColorRes, hoverRes, accentRes]) => {
-      const brandName = nameRes?.value || DEFAULT_BRAND.brandText
-      const brandLogoUrl = logoRes?.value || pLogoRes?.value || DEFAULT_BRAND.logo
-      const brandLogoColor = logoColorRes?.value || ''
-      const brandAccent = hoverRes?.value || accentRes?.value || DEFAULT_BRAND.color
+    // Una sola llamada con ?keys= en vez de 7 en paralelo — cada una era un
+    // round-trip real y sumaban la lentitud inicial antes de mostrar la tarjeta.
+    fetch(`/api/settings?keys=${CATEGORIES_KEY},restaurant_name,menu_logo,profile_logo,menu_logo_color,menu_hover_color,sidebar_accent`)
+      .then(r => r.json())
+      .then(({ values: v }: { values: Record<string, string> }) => {
+      const brandName = v.restaurant_name || DEFAULT_BRAND.brandText
+      const brandLogoUrl = v.menu_logo || v.profile_logo || DEFAULT_BRAND.logo
+      const brandLogoColor = v.menu_logo_color || ''
+      const brandAccent = v.menu_hover_color || v.sidebar_accent || DEFAULT_BRAND.color
 
       let cafe: { id: string; color?: string; logo?: string; brandText?: string; brandLogo?: string } | null = null
-      if (catRes?.value) {
+      if (v[CATEGORIES_KEY]) {
         try {
-          const list = JSON.parse(catRes.value)
+          const list = JSON.parse(v[CATEGORIES_KEY])
           cafe = Array.isArray(list) ? (list.find((c: { id: string }) => c.id === 'cafe') ?? list[0]) : null
         } catch {}
       }
@@ -91,8 +88,9 @@ export default function UsuarioPage() {
         brandText: cafe?.brandText || brandName,
         brandLogo: cafe?.brandLogo || DEFAULT_BRAND.brandLogo,
       })
+      setBrandLoaded(true)
     })
-      .catch(() => {})
+      .catch(() => setBrandLoaded(true))
   }, [])
 
   async function handleSubmit() {
@@ -134,6 +132,16 @@ export default function UsuarioPage() {
     setPassword('')
     setFlipped(false)
     setStep('auth')
+  }
+
+  // Se oculta hasta que carga la marca real — mostrar antes el logo/color
+  // genérico por defecto daba la impresión de que el original "regresaba".
+  if (!brandLoaded) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center" style={{ backgroundColor: '#000' }}>
+        <div className="h-8 w-8 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+      </div>
+    )
   }
 
   // ───────────────────── PANTALLA DE ACCESO ─────────────────────

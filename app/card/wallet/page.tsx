@@ -69,6 +69,7 @@ export default function WalletPage() {
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [brandLoaded, setBrandLoaded] = useState(false)
   const [flipped, setFlipped] = useState(false)
   const swipeStartRef = useRef<number | null>(null)
   const suppressClickRef = useRef(false)
@@ -87,22 +88,21 @@ export default function WalletPage() {
 
     // El logo siempre es el general de "Identidad del restaurante"; el nombre de
     // marca cae al mismo si no está personalizado (el color sí es propio de cada categoría).
-    Promise.all([
-      fetch(`/api/settings?key=${CATEGORIES_KEY}`).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/settings?key=restaurant_name').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_logo').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=profile_logo').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_logo_color').then(r => r.json()).catch(() => ({})),
-    ]).then(([catRes, nameRes, logoRes, pLogoRes, logoColorRes]) => {
-      const brandName = nameRes?.value || DEFAULT_BRAND_NAME
-      const brandLogoUrl = logoRes?.value || pLogoRes?.value || ''
-      const brandLogoColor = logoColorRes?.value || ''
-      if (!catRes?.value) {
+    // Una sola llamada con ?keys= en vez de 5 en paralelo — cada una era un
+    // round-trip real y sumaban la lentitud inicial antes de mostrar las tarjetas.
+    fetch(`/api/settings?keys=${CATEGORIES_KEY},restaurant_name,menu_logo,profile_logo,menu_logo_color`)
+      .then(r => r.json())
+      .then(({ values: v }: { values: Record<string, string> }) => {
+      const brandName = v.restaurant_name || DEFAULT_BRAND_NAME
+      const brandLogoUrl = v.menu_logo || v.profile_logo || ''
+      const brandLogoColor = v.menu_logo_color || ''
+      if (!v[CATEGORIES_KEY]) {
         setCategories(prev => prev.map(c => ({ ...c, logo: brandLogoUrl, logoColor: brandLogoColor, brandText: c.brandText || brandName })))
+        setBrandLoaded(true)
         return
       }
       try {
-        const parsed = JSON.parse(catRes.value)
+        const parsed = JSON.parse(v[CATEGORIES_KEY])
         if (Array.isArray(parsed) && parsed.length) {
           setCategories(parsed.map((category: RewardCategory) => ({
             ...category,
@@ -112,7 +112,9 @@ export default function WalletPage() {
           })))
         }
       } catch {}
+      setBrandLoaded(true)
     })
+      .catch(() => setBrandLoaded(true))
   }, [])
 
   const activeCard = categories[selected] ?? categories[0]
@@ -209,7 +211,9 @@ export default function WalletPage() {
   const loginLogo = categories[0]?.logo || ''
   const loginLogoColor = categories[0]?.logoColor || ''
 
-  if (loading) {
+  // brandLoaded evita mostrar las categorías con el logo/color genérico por
+  // defecto (DEFAULT_CATEGORIES) antes de que llegue la marca real configurada.
+  if (loading || !brandLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white" style={{ backgroundColor: '#000' }}>
         <div className="h-10 w-10 rounded-full border-2 border-white/20 animate-spin" style={{ borderTopColor: loginAccent }} />

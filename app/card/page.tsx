@@ -53,6 +53,7 @@ export default function CardPage() {
   const [submitting, setSubmitting] = useState(false)
   const [bgColor, setBgColor] = useState('#0a0a0a')
   const [btnColor, setBtnColor] = useState('#141414')
+  const [brandLoaded, setBrandLoaded] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -75,28 +76,22 @@ export default function CardPage() {
     // El logo siempre es el general de "Identidad del restaurante"; nombre/acento
     // son el valor por defecto y reward_categories los sobreescribe si el admin
     // lo configuró explícitamente para esta categoría de tarjeta.
-    Promise.all([
-      fetch(`/api/settings?key=${CATEGORIES_KEY}`).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/settings?key=restaurant_name').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_logo').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=profile_logo').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_logo_color').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_hover_color').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=sidebar_accent').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_bg_color').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_btn_color').then(r => r.json()).catch(() => ({})),
-    ]).then(([catRes, nameRes, logoRes, pLogoRes, logoColorRes, hoverRes, accentRes, bgRes, btnRes]) => {
-      const brandName = nameRes?.value || DEFAULT_CAFE.brandText
-      const brandLogoUrl = logoRes?.value || pLogoRes?.value || ''
-      const brandLogoColor = logoColorRes?.value || ''
-      const brandAccent = hoverRes?.value || accentRes?.value || DEFAULT_CAFE.color
-      if (bgRes?.value) setBgColor(bgRes.value)
-      if (btnRes?.value) setBtnColor(btnRes.value)
+    // Una sola llamada con ?keys= en vez de 9 en paralelo — cada una era un
+    // round-trip real y sumaban la lentitud inicial antes de mostrar la tarjeta.
+    const keys = [CATEGORIES_KEY, 'restaurant_name', 'menu_logo', 'profile_logo', 'menu_logo_color', 'menu_hover_color', 'sidebar_accent', 'menu_bg_color', 'menu_btn_color']
+    fetch(`/api/settings?keys=${keys.join(',')}`).then(r => r.json())
+      .then(({ values: v }: { values: Record<string, string> }) => {
+      const brandName = v.restaurant_name || DEFAULT_CAFE.brandText
+      const brandLogoUrl = v.menu_logo || v.profile_logo || ''
+      const brandLogoColor = v.menu_logo_color || ''
+      const brandAccent = v.menu_hover_color || v.sidebar_accent || DEFAULT_CAFE.color
+      if (v.menu_bg_color) setBgColor(v.menu_bg_color)
+      if (v.menu_btn_color) setBtnColor(v.menu_btn_color)
 
       let cafe: (CafeConfig & { id: string }) | null = null
-      if (catRes?.value) {
+      if (v[CATEGORIES_KEY]) {
         try {
-          const list = JSON.parse(catRes.value)
+          const list = JSON.parse(v[CATEGORIES_KEY])
           cafe = Array.isArray(list) ? (list.find((c: CafeConfig & { id: string }) => c.id === 'cafe') ?? list[0]) : null
         } catch {}
       }
@@ -114,7 +109,9 @@ export default function CardPage() {
         brandText: cafe?.brandText || brandName,
         brandLogo: cafe?.brandLogo || DEFAULT_CAFE.brandLogo,
       })
+      setBrandLoaded(true)
     })
+      .catch(() => setBrandLoaded(true))
   }, [])
 
   // Pantalla de espera — pollea hasta que el admin active la tarjeta
@@ -154,6 +151,17 @@ export default function CardPage() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  // Se oculta hasta que carga la marca real de la categoría — mostrar antes el
+  // color/nombre genérico por defecto daba la impresión de que el original "regresaba".
+  if (step === 'loading' || !brandLoaded) {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center" style={{ backgroundColor: bgColor }}>
+        {cfg.logo && <BrandLogo src={cfg.logo} color={cfg.logoColor} alt="Logo" className="h-20 w-auto mx-auto mb-4 animate-pulse" />}
+        <p className="text-sm" style={{ color: contrastTextSoft(bgColor) }}>Verificando...</p>
+      </div>
+    )
   }
 
   if (step === 'form') {
@@ -208,15 +216,6 @@ export default function CardPage() {
             </div>
           </div>
         </div>
-      </div>
-    )
-  }
-
-  if (step === 'loading') {
-    return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center" style={{ backgroundColor: bgColor }}>
-        {cfg.logo && <BrandLogo src={cfg.logo} color={cfg.logoColor} alt="Logo" className="h-20 w-auto mx-auto mb-4 animate-pulse" />}
-        <p className="text-sm" style={{ color: contrastTextSoft(bgColor) }}>Verificando...</p>
       </div>
     )
   }

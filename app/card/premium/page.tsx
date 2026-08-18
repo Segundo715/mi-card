@@ -41,6 +41,7 @@ export default function CardPremiumPage() {
   const [submitting, setSubmitting] = useState(false)
   const [cfg, setCfg] = useState<PremiumConfig>(DEFAULT_PREMIUM)
   const [flipped, setFlipped] = useState(false)
+  const [brandLoaded, setBrandLoaded] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -53,21 +54,19 @@ export default function CardPremiumPage() {
     // Cargar parámetros de la categoría "Premium" desde /admin/tarjetas.
     // El logo y el nombre de marca caen a la "Identidad del restaurante" si la
     // categoría no los sobreescribe explícitamente (el color sí es propio del premium).
-    Promise.all([
-      fetch(`/api/settings?key=${CATEGORIES_KEY}`).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/settings?key=restaurant_name').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_logo').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=profile_logo').then(r => r.json()).catch(() => ({})),
-      fetch('/api/settings?key=menu_logo_color').then(r => r.json()).catch(() => ({})),
-    ]).then(([catRes, nameRes, logoRes, pLogoRes, logoColorRes]) => {
-      const brandName = nameRes?.value || DEFAULT_PREMIUM.brandText
-      const brandLogoUrl = logoRes?.value || pLogoRes?.value || DEFAULT_PREMIUM.logo
-      const brandLogoColor = logoColorRes?.value || ''
+    // Una sola llamada con ?keys= en vez de 4 en paralelo — cada una era un
+    // round-trip real y sumaban la lentitud inicial antes de mostrar la tarjeta.
+    fetch(`/api/settings?keys=${CATEGORIES_KEY},restaurant_name,menu_logo,profile_logo,menu_logo_color`)
+      .then(r => r.json())
+      .then(({ values: v }: { values: Record<string, string> }) => {
+      const brandName = v.restaurant_name || DEFAULT_PREMIUM.brandText
+      const brandLogoUrl = v.menu_logo || v.profile_logo || DEFAULT_PREMIUM.logo
+      const brandLogoColor = v.menu_logo_color || ''
 
       let promo: (PremiumConfig & { id: string }) | null = null
-      if (catRes?.value) {
+      if (v[CATEGORIES_KEY]) {
         try {
-          const list = JSON.parse(catRes.value)
+          const list = JSON.parse(v[CATEGORIES_KEY])
           promo = Array.isArray(list) ? list.find((c: PremiumConfig & { id: string }) => c.id === CATEGORY_ID) : null
         } catch {}
       }
@@ -85,7 +84,9 @@ export default function CardPremiumPage() {
         brandLogo: promo?.brandLogo || DEFAULT_PREMIUM.brandLogo,
         perks: promo && Array.isArray(promo.perks) ? promo.perks : DEFAULT_PREMIUM.perks,
       })
+      setBrandLoaded(true)
     })
+      .catch(() => setBrandLoaded(true))
   }, [])
 
   async function handleSubmit() {
@@ -112,6 +113,16 @@ export default function CardPremiumPage() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  // Se oculta hasta que carga la marca real de la categoría — mostrar antes el
+  // logo/color genérico por defecto daba la impresión de que el original "regresaba".
+  if (!brandLoaded) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center" style={{ backgroundColor: '#000' }}>
+        <div className="h-8 w-8 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+      </div>
+    )
   }
 
   if (step === 'form') {
