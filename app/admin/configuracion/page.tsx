@@ -134,7 +134,7 @@ export default function AdminConfiguracionPage() {
       onClick={() => saveSetting(k)}
       disabled={saving === k}
       className="px-4 py-2 rounded-2xl text-sm font-bold shrink-0 transition-all"
-      style={{ backgroundColor: saved === k ? 'rgba(74,222,128,.2)' : `${S.accent}22`, color: saved === k ? '#4ade80' : S.accent }}>
+      style={{ backgroundColor: saved === k ? 'rgba(74,222,128,.2)' : `${S.accent}22`, color: saved === k ? '#4ade80' : S.label }}>
       {saving === k ? '...' : saved === k ? '✓ Guardado' : 'Guardar'}
     </button>
   )
@@ -202,7 +202,7 @@ export default function AdminConfiguracionPage() {
               )}
             </div>
             <label className="px-4 py-2 rounded-2xl text-sm font-bold cursor-pointer transition-all"
-              style={{ backgroundColor: `${S.accent}22`, color: S.accent }}>
+              style={{ backgroundColor: `${S.accent}22`, color: S.label }}>
               {uploadingLogo ? 'Subiendo...' : 'Cambiar logo'}
               <input type="file" accept="image/*" className="hidden"
                 onChange={e => { const f = e.target.files?.[0]; if (f) uploadLogo(f) }} />
@@ -316,7 +316,7 @@ export default function AdminConfiguracionPage() {
         )}
 
         <button type="button" onClick={handleCreateAdmin} disabled={creatingAdmin}
-          className="w-full text-center text-sm font-bold py-2 disabled:opacity-60" style={{ color: S.accent }}>
+          className="w-full text-center text-sm font-bold py-2 disabled:opacity-60" style={{ color: S.label }}>
           {creatingAdmin ? 'Creando...' : '+ Crear perfil'}
         </button>
       </div>

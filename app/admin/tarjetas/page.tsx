@@ -334,7 +334,7 @@ export default function AdminTarjetasPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
-          { label: 'Total', value: stats.total, color: S.accent },
+          { label: 'Total', value: stats.total, color: S.label },
           { label: 'Activas', value: stats.activas, color: '#4ade80' },
           { label: 'Inactivas', value: stats.inactivas, color: '#f87171' },
           { label: 'Vencidas', value: stats.vencidas, color: '#fb923c' },
@@ -386,13 +386,13 @@ export default function AdminTarjetasPage() {
             className="px-4 py-2.5 rounded-2xl text-sm font-bold transition-all"
             style={activeId === null
               ? { backgroundColor: S.accent, color: accentText }
-              : { backgroundColor: S.bg, color: S.accent, border: `1px dashed ${S.accent}` }}>
+              : { backgroundColor: S.bg, color: S.label, border: `1px dashed ${S.accent}` }}>
             + Nueva
           </button>
           {activeId && CARD_URLS[activeId] && (
             <a href={CARD_URLS[activeId]} target="_blank" rel="noopener noreferrer"
               className="ml-auto px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
-              style={{ backgroundColor: S.bg, color: S.accent, border: `1px solid ${S.accent}` }}>
+              style={{ backgroundColor: S.bg, color: S.label, border: `1px solid ${S.accent}` }}>
               Ver tarjeta <span aria-hidden>↗</span>
             </a>
           )}
@@ -402,7 +402,7 @@ export default function AdminTarjetasPage() {
           <div className="px-5 pb-1">
             <p className="text-xs" style={{ color: S.sub }}>
               {CARD_URLS[activeId]
-                ? <>Esta tarjeta se muestra en <span className="font-mono font-bold" style={{ color: S.accent }}>{CARD_URLS[activeId]}</span> — los cambios guardados se ven ahí.</>
+                ? <>Esta tarjeta se muestra en <span className="font-mono font-bold" style={{ color: S.label }}>{CARD_URLS[activeId]}</span> — los cambios guardados se ven ahí.</>
                 : <>Categoría personalizada — asígnale una ruta en el código para mostrarla a clientes.</>}
             </p>
           </div>
@@ -499,7 +499,7 @@ export default function AdminTarjetasPage() {
               })}
               <label title="Subir ícono propio"
                 className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer overflow-hidden transition-all"
-                style={{ backgroundColor: S.bg, color: S.accent,
+                style={{ backgroundColor: S.bg, color: S.label,
                   border: `1px ${isCustomIcon(draft.icon) ? 'solid' : 'dashed'} ${isCustomIcon(draft.icon) ? draft.color : S.accent}` }}>
                 {isCustomIcon(draft.icon)
                   ? <RewardIcon name={draft.icon} size={24} />
@@ -564,7 +564,7 @@ export default function AdminTarjetasPage() {
                 <img src={draft.image || '/uploads/menu/SalmonBowl.jpeg'} alt="imagen" className="w-full h-full object-cover" />
               </div>
               <label className="px-4 py-2 rounded-2xl text-sm font-bold cursor-pointer transition-all"
-                style={{ backgroundColor: `${S.accent}22`, color: S.accent }}>
+                style={{ backgroundColor: `${S.accent}22`, color: S.label }}>
                 {uploading === 'image' ? 'Subiendo...' : 'Cambiar imagen'}
                 <input type="file" accept="image/*" className="hidden"
                   onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage('image', f) }} />
@@ -582,7 +582,7 @@ export default function AdminTarjetasPage() {
                   <img src={draft.brandLogo} alt="marca" className="h-7 w-auto object-contain" />
                 </div>
                 <label className="px-4 py-2 rounded-2xl text-sm font-bold cursor-pointer"
-                  style={{ backgroundColor: `${S.accent}22`, color: S.accent }}>
+                  style={{ backgroundColor: `${S.accent}22`, color: S.label }}>
                   {uploading === 'brandLogo' ? 'Subiendo...' : 'Cambiar logo'}
                   <input type="file" accept="image/*" className="hidden"
                     onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage('brandLogo', f) }} />
@@ -600,7 +600,7 @@ export default function AdminTarjetasPage() {
                   style={{ backgroundColor: S.bg, color: S.text, border: `1px solid ${S.border}` }} />
                 <span className="text-xs" style={{ color: S.sub }}>o</span>
                 <label className="px-4 py-2 rounded-2xl text-sm font-bold cursor-pointer"
-                  style={{ backgroundColor: `${S.accent}22`, color: S.accent }}>
+                  style={{ backgroundColor: `${S.accent}22`, color: S.label }}>
                   {uploading === 'brandLogo' ? 'Subiendo...' : 'Subir logo de marca'}
                   <input type="file" accept="image/*" className="hidden"
                     onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage('brandLogo', f) }} />
@@ -751,7 +751,7 @@ export default function AdminTarjetasPage() {
 
                 {/* Avatar */}
                 <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shrink-0"
-                  style={{ backgroundColor: card.active ? `${S.accent}22` : 'rgba(239,68,68,.15)', color: card.active ? S.accent : '#f87171' }}>
+                  style={{ backgroundColor: card.active ? `${S.accent}22` : 'rgba(239,68,68,.15)', color: card.active ? S.label : '#f87171' }}>
                   {card.name.charAt(0).toUpperCase()}
                 </div>
 
@@ -796,7 +796,7 @@ export default function AdminTarjetasPage() {
                     className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
                     style={card.active
                       ? { backgroundColor: 'rgba(239,68,68,.12)', color: '#f87171' }
-                      : { backgroundColor: `${S.accent}20`, color: S.accent }}>
+                      : { backgroundColor: `${S.accent}20`, color: S.label }}>
                     {card.active ? 'Desactivar' : 'Activar'}
                   </button>
                   <button onClick={() => deleteCard(card.id)}
