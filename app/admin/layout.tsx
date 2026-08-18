@@ -59,16 +59,22 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
       {/* ===== Sidebar desktop ===== */}
       <aside className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-40 w-[240px]"
         style={{ backgroundColor: S.sidebar, borderRight: `1px solid ${S.border}` }}>
-        <div className="flex items-center gap-3 px-5 py-5">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0" style={{ backgroundColor: logoBg }}>
-            {logo && <BrandLogo src={logo} color={logoColor} alt={brandName} className="w-full h-full object-contain" />}
+        <div className="px-5 pt-5 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0" style={{ backgroundColor: logoBg }}>
+              {logo && <BrandLogo src={logo} color={logoColor} alt={brandName} className="w-full h-full object-contain" />}
+            </div>
+            <div className="font-extrabold text-base flex-1 min-w-0 truncate" style={{ color: S.text }}>{brandName}</div>
           </div>
-          <div className="font-extrabold text-base flex-1 min-w-0 truncate" style={{ color: S.text }}>{brandName}</div>
-          <button onClick={toggleDarkMode} aria-label="Cambiar tema"
-            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors"
-            style={{ backgroundColor: S.bg, border: `1px solid ${S.border}`, color: S.text }}>
-            <Icon name={darkMode ? 'sun' : 'moon'} size={16} />
-          </button>
+          <div className="flex items-center justify-end gap-2 mt-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/branding/singularix-logo.svg" alt="Singularix Agencia" className="h-3.5 w-auto object-contain" />
+            <button onClick={toggleDarkMode} aria-label="Cambiar tema"
+              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors"
+              style={{ backgroundColor: S.bg, border: `1px solid ${S.border}`, color: S.text }}>
+              <Icon name={darkMode ? 'sun' : 'moon'} size={16} />
+            </button>
+          </div>
         </div>
 
         <nav className="flex-1 px-3 space-y-1">
@@ -97,13 +103,6 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
             Cerrar sesión
           </button>
         </div>
-
-        {/* Crédito de quién construyó el panel — solo visible aquí, en /admin. */}
-        <div className="flex items-center justify-center py-3" style={{ borderTop: `1px solid ${S.border}` }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/branding/singularix-logo.svg" alt="Singularix Agencia"
-            className="h-3.5 w-auto object-contain" />
-        </div>
       </aside>
 
       {/* ===== Topbar mobile ===== */}
@@ -116,6 +115,8 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
             <span className="font-bold text-sm" style={{ color: S.text }}>{brandName}</span>
           </div>
           <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/branding/singularix-logo.svg" alt="Singularix Agencia" className="h-2.5 w-auto object-contain" />
             <button onClick={toggleDarkMode} aria-label="Cambiar tema"
               className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
               style={{ color: S.text, border: `1px solid ${S.border}` }}>
