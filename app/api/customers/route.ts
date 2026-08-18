@@ -1,9 +1,12 @@
 // GET es admin-only (lista todos los clientes). POST es público: crea cliente con confirmed:false.
 import { NextRequest } from 'next/server'
-import { getAllCustomers, createCustomer } from '@/lib/db'
+import { getAllCustomers, createCustomer, toPublicCustomer } from '@/lib/db'
+import { verifySession } from '@/lib/auth'
 
-export async function GET() {
-  return Response.json(await getAllCustomers())
+export async function GET(req: NextRequest) {
+  if (!verifySession(req.cookies.get('admin_session')?.value))
+    return Response.json({ error: 'No autorizado' }, { status: 401 })
+  return Response.json((await getAllCustomers()).map(toPublicCustomer))
 }
 
 export async function POST(req: NextRequest) {
@@ -14,5 +17,5 @@ export async function POST(req: NextRequest) {
   if (!name || !phone) {
     return Response.json({ error: 'Nombre y teléfono requeridos' }, { status: 400 })
   }
-  return Response.json(await createCustomer(name, phone, age), { status: 201 })
+  return Response.json(toPublicCustomer(await createCustomer(name, phone, age)), { status: 201 })
 }

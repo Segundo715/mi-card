@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { getCustomer, confirmCustomer, addStamp, redeemCoffee, requestCheckIn, deleteCustomer } from '@/lib/db'
+import { getCustomer, confirmCustomer, addStamp, redeemCoffee, requestCheckIn, deleteCustomer, toPublicCustomer } from '@/lib/db'
 
 export async function GET(
   _req: NextRequest,
@@ -8,7 +8,7 @@ export async function GET(
   const { id } = await ctx.params
   const c = await getCustomer(id)
   if (!c) return Response.json({ error: 'No encontrado' }, { status: 404 })
-  return Response.json(c)
+  return Response.json(toPublicCustomer(c))
 }
 
 export async function PATCH(
@@ -25,25 +25,25 @@ export async function PATCH(
   if (action === 'confirm') {
     const c = await confirmCustomer(id)
     if (!c) return Response.json({ error: 'No encontrado' }, { status: 404 })
-    return Response.json(c)
+    return Response.json(toPublicCustomer(c))
   }
 
   if (action === 'stamp') {
     const c = await addStamp(id)
     if (!c) return Response.json({ error: 'No encontrado o no confirmado' }, { status: 404 })
-    return Response.json(c)
+    return Response.json(toPublicCustomer(c))
   }
 
   if (action === 'redeem') {
     const c = await redeemCoffee(id)
     if (!c) return Response.json({ error: 'No encontrado' }, { status: 404 })
-    return Response.json(c)
+    return Response.json(toPublicCustomer(c))
   }
 
   if (action === 'checkin') {
     const c = await requestCheckIn(id)
     if (!c) return Response.json({ error: 'No encontrado' }, { status: 404 })
-    return Response.json(c)
+    return Response.json(toPublicCustomer(c))
   }
 
   return Response.json({ error: 'Acción inválida' }, { status: 400 })

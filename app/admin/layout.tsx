@@ -144,7 +144,9 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      <main className="md:ml-[240px]">
+      {/* pr-48 reserva el espacio del logo+toggle fijo de arriba para que ningún
+          contenido de página (ej. los botones Sellar/Clientes) quede debajo. */}
+      <main className="md:ml-[240px] md:pr-48">
         {children}
       </main>
     </div>

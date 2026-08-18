@@ -77,7 +77,10 @@ export default function WalletPage() {
   useEffect(() => {
     const saved = localStorage.getItem(ACCOUNT_KEY)
     if (saved) {
-      fetch(`/api/loyalty/${saved}`)
+      // La cuenta de socio vive en la tabla `customers` (creada por
+      // /api/customer-auth), no en `loyalty_cards` — antes esto apuntaba mal
+      // y la sesión se perdía cada vez que se recargaba la página.
+      fetch(`/api/customers/${saved}`)
         .then(r => r.ok ? r.json() : null)
         .then(data => { if (data) setCustomer(data) })
         .catch(() => {})

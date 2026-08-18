@@ -22,6 +22,14 @@ export interface Customer {
   passwordHash?: string
 }
 
+// El hash nunca debe llegar al cliente — usar siempre en las respuestas de API
+// que devuelven un Customer (GET/POST/PATCH), a diferencia del objeto interno
+// que sí lo necesita para comparar contraseñas.
+export function toPublicCustomer(c: Customer): Omit<Customer, 'passwordHash'> {
+  const { passwordHash: _passwordHash, ...safe } = c
+  return safe
+}
+
 // Prefijo "customer:" separa el espacio de hashes de clientes del de admins/empleados.
 function hashPassword(name: string, password: string): string {
   return createHash('sha256').update(`customer:${name.toLowerCase()}:${password}`).digest('hex')
