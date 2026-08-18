@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { RewardIcon } from '@/app/components/RewardIcon'
 import { BrandLogo } from '@/app/components/BrandLogo'
+import { DEFAULT_BRAND_NAME, DEFAULT_BRAND_COLOR } from '@/lib/brandDefaults'
 
 const QRCode = dynamic(() => import('react-qr-code'), { ssr: false })
 
@@ -11,9 +12,9 @@ const STORAGE_KEY = 'registro_card_id'
 const CATEGORIES_KEY = 'reward_categories'
 
 const DEFAULT_CAFE = {
-  name: 'Tarjeta de Café', reward: 'Café gratis', goal: 5, icon: 'coffee', color: '#B90F45',
+  name: 'Tarjeta de Café', reward: 'Café gratis', goal: 5, icon: 'coffee', color: DEFAULT_BRAND_COLOR,
   iconColor: '#ffffff', logo: '', logoColor: '', image: '/uploads/menu/SalmonBowl.jpeg',
-  brandText: 'NICHO', brandLogo: '',
+  brandText: DEFAULT_BRAND_NAME, brandLogo: '',
 }
 
 interface CafeConfig {

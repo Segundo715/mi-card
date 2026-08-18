@@ -7,6 +7,7 @@ import type { CSSProperties } from 'react'
 import dynamic from 'next/dynamic'
 import { RewardIcon } from '@/app/components/RewardIcon'
 import { BrandLogo } from '@/app/components/BrandLogo'
+import { DEFAULT_BRAND_NAME, DEFAULT_BRAND_COLOR } from '@/lib/brandDefaults'
 
 const QRCode = dynamic(() => import('react-qr-code'), { ssr: false })
 
@@ -42,10 +43,10 @@ interface RewardCategory {
 type Mode = 'login' | 'register'
 
 const DEFAULT_CATEGORIES: RewardCategory[] = [
-  { id: 'cafe', name: 'Tarjeta de Cafe', reward: 'Cafe gratis', goal: 5, icon: 'coffee', color: '#B90F45', iconColor: '#ffffff', logo: '/logo.png', brandText: 'NICHO' },
-  { id: 'dosxuno', name: 'Tarjeta 2x1', reward: 'Segundo producto gratis', goal: 4, icon: 'gift', color: '#60a5fa', iconColor: '#ffffff', logo: '/logo.png', brandText: 'NICHO' },
-  { id: 'descuento', name: 'Descuento Directo', reward: '20% de descuento', goal: 3, icon: 'percent', color: '#fb923c', iconColor: '#ffffff', logo: '/logo.png', brandText: 'NICHO' },
-  { id: 'premium', name: 'Upgrade Premium', reward: 'Beneficios premium', goal: 1, icon: 'crown', color: '#fbbf24', iconColor: '#000000', logo: '/logo.png', brandText: 'NICHO', perks: ['Tamano grande gratis', 'Bebida gratis'] },
+  { id: 'cafe', name: 'Tarjeta de Cafe', reward: 'Cafe gratis', goal: 5, icon: 'coffee', color: DEFAULT_BRAND_COLOR, iconColor: '#ffffff', logo: '', brandText: DEFAULT_BRAND_NAME },
+  { id: 'dosxuno', name: 'Tarjeta 2x1', reward: 'Segundo producto gratis', goal: 4, icon: 'gift', color: '#60a5fa', iconColor: '#ffffff', logo: '', brandText: DEFAULT_BRAND_NAME },
+  { id: 'descuento', name: 'Descuento Directo', reward: '20% de descuento', goal: 3, icon: 'percent', color: '#fb923c', iconColor: '#ffffff', logo: '', brandText: DEFAULT_BRAND_NAME },
+  { id: 'premium', name: 'Upgrade Premium', reward: 'Beneficios premium', goal: 1, icon: 'crown', color: '#fbbf24', iconColor: '#000000', logo: '', brandText: DEFAULT_BRAND_NAME, perks: ['Tamano grande gratis', 'Bebida gratis'] },
 ]
 
 const INPUT = 'w-full rounded-2xl px-4 py-3.5 text-white bg-[#141414] placeholder-gray-500 focus:outline-none text-sm transition-colors'
@@ -93,8 +94,8 @@ export default function WalletPage() {
       fetch('/api/settings?key=profile_logo').then(r => r.json()).catch(() => ({})),
       fetch('/api/settings?key=menu_logo_color').then(r => r.json()).catch(() => ({})),
     ]).then(([catRes, nameRes, logoRes, pLogoRes, logoColorRes]) => {
-      const brandName = nameRes?.value || 'Restaurante'
-      const brandLogoUrl = logoRes?.value || pLogoRes?.value || '/logo.png'
+      const brandName = nameRes?.value || DEFAULT_BRAND_NAME
+      const brandLogoUrl = logoRes?.value || pLogoRes?.value || ''
       const brandLogoColor = logoColorRes?.value || ''
       if (!catRes?.value) {
         setCategories(prev => prev.map(c => ({ ...c, logo: brandLogoUrl, logoColor: brandLogoColor, brandText: c.brandText || brandName })))
@@ -202,10 +203,16 @@ export default function WalletPage() {
     setPassword('')
   }
 
+  // Antes de iniciar sesión no hay una "categoría activa" — se usa la primera
+  // (normalmente "cafe") como acento/logo de la pantalla de login/registro.
+  const loginAccent = categories[0]?.color || DEFAULT_BRAND_COLOR
+  const loginLogo = categories[0]?.logo || ''
+  const loginLogoColor = categories[0]?.logoColor || ''
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white" style={{ backgroundColor: '#000' }}>
-        <div className="h-10 w-10 rounded-full border-2 border-white/20 border-t-[#B90F45] animate-spin" />
+        <div className="h-10 w-10 rounded-full border-2 border-white/20 animate-spin" style={{ borderTopColor: loginAccent }} />
       </div>
     )
   }
@@ -214,9 +221,8 @@ export default function WalletPage() {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center p-5 overflow-y-auto" style={{ backgroundColor: '#000' }}>
         <div className="text-center mb-7">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Logo" className="h-20 w-auto mx-auto mb-3" />
-          <p className="text-sm font-medium text-[#B90F45]">Wallet de tarjetas</p>
+          {loginLogo && <BrandLogo src={loginLogo} color={loginLogoColor} alt="Logo" className="h-20 w-auto mx-auto mb-3" />}
+          <p className="text-sm font-medium" style={{ color: loginAccent }}>Wallet de tarjetas</p>
         </div>
 
         <div className="w-full max-w-sm rounded-3xl shadow-2xl p-5 space-y-3" style={{ backgroundColor: '#0d0d0d', border: '1px solid #1a1a1a' }}>
@@ -225,7 +231,7 @@ export default function WalletPage() {
               <button key={item} type="button"
                 onClick={() => { setMode(item); setError('') }}
                 className="flex-1 py-2 rounded-xl text-xs font-black uppercase transition-colors"
-                style={mode === item ? { backgroundColor: '#B90F45', color: '#fff' } : { color: '#888' }}>
+                style={mode === item ? { backgroundColor: loginAccent, color: '#fff' } : { color: '#888' }}>
                 {item === 'login' ? 'Entrar' : 'Crear cuenta'}
               </button>
             ))}
@@ -234,13 +240,13 @@ export default function WalletPage() {
           <label className="block">
             <span className="block text-xs font-bold text-gray-400 mb-1.5 uppercase">Nombre</span>
             <input value={name} onChange={e => { setName(e.target.value); setError('') }}
-              placeholder="Ej. Maria Gonzalez" className={INPUT} style={{ border: '1px solid rgba(185,15,69,0.4)' }} />
+              placeholder="Ej. Maria Gonzalez" className={INPUT} style={{ border: `1px solid ${loginAccent}66` }} />
           </label>
 
           <label className="block">
             <span className="block text-xs font-bold text-gray-400 mb-1.5 uppercase">Contrasena</span>
             <input type="password" value={password} onChange={e => { setPassword(e.target.value); setError('') }}
-              placeholder="********" className={INPUT} style={{ border: '1px solid rgba(185,15,69,0.4)' }} />
+              placeholder="********" className={INPUT} style={{ border: `1px solid ${loginAccent}66` }} />
           </label>
 
           {mode === 'register' && (
@@ -248,12 +254,12 @@ export default function WalletPage() {
               <label className="block">
                 <span className="block text-xs font-bold text-gray-400 mb-1.5 uppercase">Telefono</span>
                 <input type="tel" value={phone} onChange={e => { setPhone(e.target.value); setError('') }}
-                  placeholder="Ej. 55 1234 5678" className={INPUT} style={{ border: '1px solid rgba(185,15,69,0.4)' }} />
+                  placeholder="Ej. 55 1234 5678" className={INPUT} style={{ border: `1px solid ${loginAccent}66` }} />
               </label>
               <label className="block">
                 <span className="block text-xs font-bold text-gray-400 mb-1.5 uppercase">Fecha de nacimiento</span>
                 <input type="date" value={birth} onChange={e => { setBirth(e.target.value); setError('') }}
-                  className={INPUT} style={{ border: '1px solid rgba(185,15,69,0.4)', colorScheme: 'dark' }} />
+                  className={INPUT} style={{ border: `1px solid ${loginAccent}66`, colorScheme: 'dark' }} />
               </label>
             </>
           )}
@@ -267,7 +273,7 @@ export default function WalletPage() {
 
           <button type="button" onClick={handleSubmit} disabled={submitting}
             className="w-full text-white font-black py-4 rounded-2xl text-base disabled:opacity-60 transition-colors"
-            style={{ backgroundColor: '#B90F45' }}>
+            style={{ backgroundColor: loginAccent }}>
             {submitting ? 'Cargando...' : mode === 'login' ? 'Abrir wallet' : 'Crear wallet'}
           </button>
         </div>
@@ -281,10 +287,10 @@ export default function WalletPage() {
       <main className="mx-auto w-full max-w-lg px-4 pt-6">
         <div className="flex items-center justify-between">
           <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#B90F45]">Wallet</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: activeCard.color }}>Wallet</p>
             <h1 className="text-white text-2xl font-black leading-tight truncate">{customer.name}</h1>
           </div>
-          <BrandLogo src={activeCard.logo || '/logo.png'} color={activeCard.logoColor} alt="" className="h-10 w-10 object-contain shrink-0" />
+          {activeCard.logo && <BrandLogo src={activeCard.logo} color={activeCard.logoColor} alt="" className="h-10 w-10 object-contain shrink-0" />}
         </div>
 
         <section
@@ -333,11 +339,11 @@ export default function WalletPage() {
 
                   <div className="absolute inset-0 flex flex-col overflow-hidden rounded-3xl shadow-2xl" style={faceStyle}>
                     <div className="flex items-center justify-between px-5 pt-5 pb-3">
-                      <BrandLogo src={category.logo || '/logo.png'} color={category.logoColor} alt="Logo" className="h-10 w-auto object-contain" />
+                      {category.logo && <BrandLogo src={category.logo} color={category.logoColor} alt="Logo" className="h-10 w-auto object-contain" />}
                       {category.brandLogo
                         // eslint-disable-next-line @next/next/no-img-element
                         ? <img src={category.brandLogo} alt="Marca" className="h-8 w-auto object-contain" />
-                        : <span className="text-white font-black text-base tracking-wide">{category.brandText || 'NICHO'}</span>}
+                        : <span className="text-white font-black text-base tracking-wide">{category.brandText || DEFAULT_BRAND_NAME}</span>}
                     </div>
 
                     <div className="relative h-[145px] sm:h-[165px]">
@@ -394,7 +400,7 @@ export default function WalletPage() {
                   <div className="absolute inset-0 flex flex-col overflow-hidden rounded-3xl shadow-2xl"
                     style={{ ...faceStyle, transform: 'rotateY(180deg)' }}>
                     <div className="flex justify-center pt-5 pb-2">
-                      <BrandLogo src={category.logo || '/logo.png'} color={category.logoColor} alt="Logo" className="h-9 w-auto object-contain" />
+                      {category.logo && <BrandLogo src={category.logo} color={category.logoColor} alt="Logo" className="h-9 w-auto object-contain" />}
                     </div>
 
                     <div className="h-9 w-full mt-2" style={{ backgroundColor: 'rgba(0,0,0,0.55)' }} />

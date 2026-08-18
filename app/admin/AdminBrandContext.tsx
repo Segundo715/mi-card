@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
+import { DEFAULT_BRAND_NAME, DEFAULT_BRAND_COLOR } from '@/lib/brandDefaults'
 
 function contrastText(hex: string): string {
   const m = /^#([0-9a-fA-F]{6})$/.exec(hex)
@@ -35,12 +36,12 @@ export function useAdminBrand(): AdminBrand {
 }
 
 export function AdminBrandProvider({ children }: { children: React.ReactNode }) {
-  const [logo, setLogo] = useState('/logo.png')
+  const [logo, setLogo] = useState('')
   const [logoColor, setLogoColor] = useState('')
   const [logoBg, setLogoBg] = useState('#0d0d0d')
-  const [brandName, setBrandName] = useState('Restaurante')
+  const [brandName, setBrandName] = useState(DEFAULT_BRAND_NAME)
   const [adminName, setAdminName] = useState('Administrador')
-  const [accentHex, setAccentHex] = useState('#B90F45')
+  const [accentHex, setAccentHex] = useState(DEFAULT_BRAND_COLOR)
   const [loaded, setLoaded] = useState(false)
 
   function load() {

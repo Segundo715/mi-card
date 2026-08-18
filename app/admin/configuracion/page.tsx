@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAdminBrand } from '../AdminBrandContext'
 import { uploadWebp } from '@/lib/uploadWebp'
 import { BrandLogo } from '@/app/components/BrandLogo'
+import { DEFAULT_BRAND_COLOR, DEFAULT_BRAND_ACCENT } from '@/lib/brandDefaults'
 
 export default function AdminConfiguracionPage() {
   const { S, reload } = useAdminBrand()
@@ -117,8 +118,10 @@ export default function AdminConfiguracionPage() {
           <div className="flex items-center gap-3">
             <div className="w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden shrink-0"
               style={{ background: values.menu_bg_color || '#0d0d0d', border: `1px solid ${S.border}` }}>
-              <BrandLogo src={values.menu_logo || values.profile_logo || '/logo.png'} color={values.menu_logo_color}
-                alt="logo" className="w-10 h-10 object-contain" />
+              {(values.menu_logo || values.profile_logo) && (
+                <BrandLogo src={values.menu_logo || values.profile_logo} color={values.menu_logo_color}
+                  alt="logo" className="w-10 h-10 object-contain" />
+              )}
             </div>
             <label className="px-4 py-2 rounded-2xl text-sm font-bold cursor-pointer transition-all"
               style={{ backgroundColor: `${S.accent}22`, color: S.accent }}>
@@ -131,7 +134,7 @@ export default function AdminConfiguracionPage() {
 
           <div className="mt-3">
             <label className="block text-xs font-bold uppercase tracking-wide mb-1" style={{ color: S.sub }}>Recolorear logo (si tiene negro u otro color)</label>
-            {renderColorRow('menu_logo_color', '#B90F45')}
+            {renderColorRow('menu_logo_color', DEFAULT_BRAND_COLOR)}
             <p className="text-xs mt-1" style={{ color: S.sub }}>Reemplaza todo el logo por un solo tono, usando su forma como silueta. Funciona con logos de fondo transparente (PNG/WebP/SVG); no aplica a fotos o JPG.</p>
           </div>
         </div>
@@ -145,13 +148,13 @@ export default function AdminConfiguracionPage() {
         {/* Botón / tarjetas */}
         <div>
           <label className="block text-xs font-bold uppercase tracking-wide mb-1" style={{ color: S.sub }}>Color de botón / tarjetas</label>
-          {renderColorRow('menu_btn_color', '#B90F45')}
+          {renderColorRow('menu_btn_color', DEFAULT_BRAND_COLOR)}
         </div>
 
         {/* Acento */}
         <div>
           <label className="block text-xs font-bold uppercase tracking-wide mb-1" style={{ color: S.sub }}>Color de acento / hover</label>
-          {renderColorRow('menu_hover_color', '#DC5E86')}
+          {renderColorRow('menu_hover_color', DEFAULT_BRAND_ACCENT)}
         </div>
       </div>
 

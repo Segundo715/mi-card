@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { BrandLogo } from '@/app/components/BrandLogo'
+import { DEFAULT_BRAND_NAME, DEFAULT_BRAND_COLOR } from '@/lib/brandDefaults'
 
 const STORAGE_KEY = 'admin_remembered_name'
 
@@ -19,10 +20,10 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [logo, setLogo] = useState('/logo.png')
+  const [logo, setLogo] = useState('')
   const [logoColor, setLogoColor] = useState('')
-  const [accent, setAccent] = useState('#B90F45')
-  const [brandName, setBrandName] = useState('Restaurante')
+  const [accent, setAccent] = useState(DEFAULT_BRAND_COLOR)
+  const [brandName, setBrandName] = useState(DEFAULT_BRAND_NAME)
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -69,7 +70,7 @@ export default function AdminLoginPage() {
     <div className="fixed inset-0 flex flex-col items-center justify-center p-5" style={{ backgroundColor: '#000' }}>
       <div className="text-center mb-8">
         <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 overflow-hidden">
-          <BrandLogo src={logo} color={logoColor} alt={brandName} className="w-full h-full object-contain" />
+          {logo && <BrandLogo src={logo} color={logoColor} alt={brandName} className="w-full h-full object-contain" />}
         </div>
         <div className="font-extrabold text-xl tracking-wide text-white">{brandName}</div>
         <p className="text-sm mt-1 font-medium" style={{ color: accent }}>Sellar visitas — acceso de personal</p>

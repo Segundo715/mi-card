@@ -8,6 +8,7 @@ import { useAdminBrand } from '../AdminBrandContext'
 import { Icon } from '@/app/components/Icon'
 import { RewardIcon, REWARD_ICON_KEYS, isCustomIcon } from '@/app/components/RewardIcon'
 import { uploadWebp } from '@/lib/uploadWebp'
+import { DEFAULT_BRAND_COLOR } from '@/lib/brandDefaults'
 
 interface RewardCategory {
   id: string; name: string; reward: string; goal: number; icon: string; color: string
@@ -549,7 +550,7 @@ export default function AdminTarjetasPage() {
                 className="w-9 h-9 rounded-full cursor-pointer bg-transparent" style={{ border: `1px solid ${S.border}` }} />
               <input type="text" value={draft.color}
                 onChange={e => setDraft(d => ({ ...d, color: e.target.value }))}
-                placeholder="#B90F45"
+                placeholder={DEFAULT_BRAND_COLOR}
                 className="w-28 px-3 py-2 rounded-xl text-sm outline-none font-mono"
                 style={{ backgroundColor: S.bg, color: S.text, border: `1px solid ${S.border}` }} />
             </div>

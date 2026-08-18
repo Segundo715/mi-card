@@ -61,7 +61,7 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
         style={{ backgroundColor: S.sidebar, borderRight: `1px solid ${S.border}` }}>
         <div className="flex items-center gap-3 px-5 py-5">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0" style={{ backgroundColor: logoBg }}>
-            <BrandLogo src={logo} color={logoColor} alt={brandName} className="w-full h-full object-contain" />
+            {logo && <BrandLogo src={logo} color={logoColor} alt={brandName} className="w-full h-full object-contain" />}
           </div>
           <div className="font-extrabold text-base" style={{ color: S.text }}>{brandName}</div>
         </div>
@@ -99,7 +99,7 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden shrink-0" style={{ backgroundColor: logoBg }}>
-              <BrandLogo src={logo} color={logoColor} alt={brandName} className="w-full h-full object-contain" />
+              {logo && <BrandLogo src={logo} color={logoColor} alt={brandName} className="w-full h-full object-contain" />}
             </div>
             <span className="font-bold text-sm" style={{ color: S.text }}>{brandName}</span>
           </div>

@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { RewardIcon } from '@/app/components/RewardIcon'
 import { BrandLogo } from '@/app/components/BrandLogo'
+import { DEFAULT_BRAND_NAME } from '@/lib/brandDefaults'
 
 const QRCode = dynamic(() => import('react-qr-code'), { ssr: false })
 
@@ -16,8 +17,8 @@ const CATEGORY_ID = 'dosxuno'
 // Config por defecto de la "Tarjeta 2x1" (se sobreescribe desde /admin/tarjetas)
 const DEFAULT_2X1 = {
   name: 'Tarjeta 2x1', reward: 'Segundo producto gratis', icon: 'gift', color: '#60a5fa',
-  iconColor: '#ffffff', logo: '/logo.png', logoColor: '', image: '/uploads/menu/SalmonBowl.jpeg',
-  brandText: 'NICHO', brandLogo: '',
+  iconColor: '#ffffff', logo: '', logoColor: '', image: '/uploads/menu/SalmonBowl.jpeg',
+  brandText: DEFAULT_BRAND_NAME, brandLogo: '',
 }
 
 interface PromoConfig {
@@ -116,7 +117,7 @@ export default function Card2x1Page() {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center p-5" style={{ backgroundColor: '#000' }}>
         <div className="text-center mb-8">
-          <BrandLogo src={cfg.logo} color={cfg.logoColor} alt="Logo" className="h-20 w-auto mx-auto mb-3" />
+          {cfg.logo && <BrandLogo src={cfg.logo} color={cfg.logoColor} alt="Logo" className="h-20 w-auto mx-auto mb-3" />}
           <p className="text-sm font-medium inline-flex items-center gap-1.5 justify-center" style={{ color: cfg.color }}>
             Promoción 2×1
             <RewardIcon name={cfg.icon} size={16} style={{ color: cfg.iconColor }} />
@@ -189,7 +190,7 @@ export default function Card2x1Page() {
             <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl flex flex-col" style={faceStyle}>
               {/* Logo + marca */}
               <div className="flex items-center justify-between px-5 pt-5 pb-3">
-                <BrandLogo src={cfg.logo} color={cfg.logoColor} alt="Logo" className="h-10 w-auto object-contain" />
+                {cfg.logo && <BrandLogo src={cfg.logo} color={cfg.logoColor} alt="Logo" className="h-10 w-auto object-contain" />}
                 {cfg.brandLogo
                   // eslint-disable-next-line @next/next/no-img-element
                   ? <img src={cfg.brandLogo} alt="Marca" className="h-8 w-auto object-contain" />
@@ -230,7 +231,7 @@ export default function Card2x1Page() {
               style={{ ...faceStyle, transform: 'rotateY(180deg)' }}>
               {/* Logo centrado arriba */}
               <div className="flex justify-center pt-4 pb-2">
-                <BrandLogo src={cfg.logo} color={cfg.logoColor} alt="Logo" className="h-9 w-auto object-contain" />
+                {cfg.logo && <BrandLogo src={cfg.logo} color={cfg.logoColor} alt="Logo" className="h-9 w-auto object-contain" />}
               </div>
 
               {/* Cinta magnética (decorativa, sin función) */}

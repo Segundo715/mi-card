@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { BrandLogo } from '@/app/components/BrandLogo'
+import { DEFAULT_BRAND_NAME, DEFAULT_BRAND_COLOR } from '@/lib/brandDefaults'
 
 const QRCode = dynamic(() => import('react-qr-code'), { ssr: false })
 
@@ -14,7 +15,7 @@ const CATEGORIES_KEY = 'reward_categories'
 // Tarjeta de socio para usuarios con cuenta (login/registro).
 // Branding por defecto (se sobreescribe con la categoría "Tarjeta de Café" de /admin/tarjetas)
 const DEFAULT_BRAND = {
-  color: '#B90F45', logo: '/logo.png', logoColor: '', brandText: 'NICHO', brandLogo: '',
+  color: DEFAULT_BRAND_COLOR, logo: '', logoColor: '', brandText: DEFAULT_BRAND_NAME, brandLogo: '',
 }
 
 interface Brand {
@@ -29,7 +30,7 @@ interface Customer {
 type Step = 'auth' | 'card'
 type Mode = 'login' | 'register'
 
-const INPUT = 'w-full border border-[#B90F45]/40 rounded-2xl px-4 py-3.5 text-white bg-[#1a1a1a] placeholder-gray-500 focus:outline-none focus:border-[#B90F45] text-sm transition-colors'
+const INPUT = 'w-full rounded-2xl px-4 py-3.5 text-white bg-[#1a1a1a] placeholder-gray-500 focus:outline-none text-sm transition-colors'
 
 function formatMemberSince(iso?: string): string {
   if (!iso) return '—'
@@ -140,7 +141,7 @@ export default function UsuarioPage() {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center p-5 overflow-y-auto" style={{ backgroundColor: '#000' }}>
         <div className="text-center mb-7">
-          <BrandLogo src={brand.logo} color={brand.logoColor} alt="Logo" className="h-20 w-auto mx-auto mb-3" />
+          {brand.logo && <BrandLogo src={brand.logo} color={brand.logoColor} alt="Logo" className="h-20 w-auto mx-auto mb-3" />}
           <p className="text-sm font-medium" style={{ color: brand.color }}>Tarjeta de socio</p>
         </div>
 
@@ -162,13 +163,13 @@ export default function UsuarioPage() {
           <div>
             <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Nombre</label>
             <input type="text" value={name} onChange={e => { setName(e.target.value); setError('') }}
-              placeholder="Ej. María González" autoFocus className={INPUT} />
+              placeholder="Ej. María González" autoFocus className={INPUT} style={{ border: `1px solid ${brand.color}66` }} />
           </div>
 
           <div>
             <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Contraseña</label>
             <input type="password" value={password} onChange={e => { setPassword(e.target.value); setError('') }}
-              placeholder="••••••••" className={INPUT} />
+              placeholder="••••••••" className={INPUT} style={{ border: `1px solid ${brand.color}66` }} />
           </div>
 
           {mode === 'register' && (
@@ -176,12 +177,12 @@ export default function UsuarioPage() {
               <div>
                 <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Teléfono</label>
                 <input type="tel" value={phone} onChange={e => { setPhone(e.target.value); setError('') }}
-                  placeholder="Ej. 55 1234 5678" className={INPUT} />
+                  placeholder="Ej. 55 1234 5678" className={INPUT} style={{ border: `1px solid ${brand.color}66` }} />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Fecha de nacimiento (opcional)</label>
                 <input type="date" value={birth} onChange={e => { setBirth(e.target.value); setError('') }}
-                  className={INPUT} style={{ colorScheme: 'dark' }} />
+                  className={INPUT} style={{ colorScheme: 'dark', border: `1px solid ${brand.color}66` }} />
               </div>
             </>
           )}
@@ -233,7 +234,7 @@ export default function UsuarioPage() {
             <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl flex flex-col" style={faceStyle}>
               {/* Logo + marca */}
               <div className="flex items-center justify-between px-5 pt-5 pb-2">
-                <BrandLogo src={brand.logo} color={brand.logoColor} alt="Logo" className="h-10 w-auto object-contain" />
+                {brand.logo && <BrandLogo src={brand.logo} color={brand.logoColor} alt="Logo" className="h-10 w-auto object-contain" />}
                 {brand.brandLogo
                   // eslint-disable-next-line @next/next/no-img-element
                   ? <img src={brand.brandLogo} alt="Marca" className="h-8 w-auto object-contain" />
