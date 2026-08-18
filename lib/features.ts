@@ -5,7 +5,6 @@ import { supabase } from './supabase'
 export const FEATURES = {
   sellar:        { label: 'Sellar',        emoji: '☕' },
   tarjetas:      { label: 'Tarjetas',      emoji: '💳' },
-  usuarios:      { label: 'Usuarios',      emoji: '👤' },
   configuracion: { label: 'Configuración', emoji: '⚙️' },
 } as const
 
