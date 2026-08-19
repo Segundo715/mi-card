@@ -700,15 +700,27 @@ export default function AdminTarjetasPage() {
               : { backgroundColor: S.card, color: S.sub, border: `1px solid ${S.border}` }}>
             Todas las categorías
           </button>
-          {categories.map(c => (
-            <button key={c.id} onClick={() => setCategoryFilter(c.id)}
-              className="px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
-              style={categoryFilter === c.id
-                ? { backgroundColor: c.color, color: contrastText(c.color) }
-                : { backgroundColor: S.card, color: S.sub, border: `1px solid ${S.border}` }}>
-              <RewardIcon name={c.icon} size={13} /> {c.name}
-            </button>
-          ))}
+          {categories.map(c => {
+            const url = CARD_URLS[c.id]
+            return (
+              <div key={c.id} className="inline-flex items-stretch gap-1">
+                <button onClick={() => setCategoryFilter(c.id)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
+                  style={categoryFilter === c.id
+                    ? { backgroundColor: c.color, color: contrastText(c.color) }
+                    : { backgroundColor: S.card, color: S.sub, border: `1px solid ${S.border}` }}>
+                  <RewardIcon name={c.icon} size={13} /> {c.name}
+                </button>
+                {url && (
+                  <a href={url} target="_blank" rel="noopener noreferrer" title={`Abrir ${url} en una pestaña nueva`}
+                    className="w-8 rounded-xl flex items-center justify-center shrink-0 transition-colors"
+                    style={{ backgroundColor: S.card, color: S.sub, border: `1px solid ${S.border}` }}>
+                    <Icon name="link" size={13} />
+                  </a>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
 
